@@ -13,7 +13,27 @@ server.use(express.json());
 
 const projects = [];
 
-server.post('/projects', (req, res) => {
+const idVerify = (req, res, next) => {
+  const { id } = req.params;
+  const project = projects.find(p => p.id == id);
+
+  if ( !project ) return res.status(400).json({ error: 'Este projeto não existe.' });
+  return next();
+}
+
+let count = 0;
+
+const requestCount = (req, res, next) => {
+  count += 1;
+  setCount();
+  return next();
+}
+
+const setCount = () => {
+  console.log(`O total de requisições é de: ${ count }`);
+}
+
+server.post('/projects', requestCount, (req, res) => {
   const { id, title } = req.body;
   
   const project = {
@@ -26,7 +46,7 @@ server.post('/projects', (req, res) => {
   return res.json(project);
 });
 
-server.put('/projects/:id', (req, res) => {
+server.put('/projects/:id', idVerify, requestCount, (req, res) => {
   const { id } = req.params;
   const { title } = req.body;
 
@@ -37,7 +57,7 @@ server.put('/projects/:id', (req, res) => {
   return res.json(project);
 });
 
-server.delete('/projects/:id', (req, res) => {
+server.delete('/projects/:id', idVerify, requestCount, (req, res) => {
   const { id } = req.params;
   const project = projects.find(p => p.id == id);
 
@@ -45,7 +65,7 @@ server.delete('/projects/:id', (req, res) => {
   return res.json(projects);
 });
 
-server.post('/projects/:id/tasks', (req, res) => {
+server.post('/projects/:id/tasks', idVerify, requestCount, (req, res) => {
   const { id } = req.params;
   const { tasks } = req.body;
 
@@ -57,7 +77,7 @@ server.post('/projects/:id/tasks', (req, res) => {
 
 
 
-server.get('/projects', (req, res) => {
+server.get('/projects', requestCount, (req, res) => {
   return res.json(projects);
 });
 
